@@ -74,6 +74,7 @@ class ControlPanel:
         )
         self._invert = ViewerCheckbox("Invert", False, cb_hook=rerender_cb, hint="Invert the colormap")
         self._normalize = ViewerCheckbox("Normalize", True, cb_hook=rerender_cb, hint="Normalize the colormap")
+        self._equalize = ViewerCheckbox("Equalize", False, cb_hook=rerender_cb, hint="Histogram equalize the colormap")
         self._min = ViewerNumber("Min", 0.0, cb_hook=rerender_cb, hint="Min value of the colormap")
         self._max = ViewerNumber("Max", 1.0, cb_hook=rerender_cb, hint="Max value of the colormap")
 
@@ -102,6 +103,9 @@ class ControlPanel:
         )
         self._split_normalize = ViewerCheckbox(
             "Normalize ", True, cb_hook=rerender_cb, hint="Normalize the colormap of the second output"
+        )
+        self._split_equalize = ViewerCheckbox(
+            "Equalize ", True, cb_hook=rerender_cb, hint="Histogram equalize the colormap of the second output"
         )
         self._split_min = ViewerNumber(
             "Min ", 0.0, cb_hook=rerender_cb, hint="Min value of the colormap of the second output"
@@ -149,6 +153,7 @@ class ControlPanel:
             with self.viser_server.gui_folder(" "):
                 self.add_element(self._invert, additional_tags=("colormap",))
                 self.add_element(self._normalize, additional_tags=("colormap",))
+                self.add_element(self._equalize, additional_tags=("colormap",))
                 self.add_element(self._min, additional_tags=("colormap",))
                 self.add_element(self._max, additional_tags=("colormap",))
 
@@ -162,6 +167,7 @@ class ControlPanel:
             with self.viser_server.gui_folder("  "):
                 self.add_element(self._split_invert, additional_tags=("split_colormap",))
                 self.add_element(self._split_normalize, additional_tags=("split_colormap",))
+                self.add_element(self._split_equalize, additional_tags=("split_colormap",))
                 self.add_element(self._split_min, additional_tags=("split_colormap",))
                 self.add_element(self._split_max, additional_tags=("split_colormap",))
 
@@ -329,6 +335,7 @@ class ControlPanel:
         return ColormapOptions(
             colormap=self._colormap.value,
             normalize=self._normalize.value,
+            equalize=self._equalize.value,
             colormap_min=self._min.value,
             colormap_max=self._max.value,
             invert=self._invert.value,
@@ -340,6 +347,7 @@ class ControlPanel:
         return ColormapOptions(
             colormap=self._split_colormap.value,
             normalize=self._split_normalize.value,
+            equalize=self._split_equalize.value,
             colormap_min=self._split_min.value,
             colormap_max=self._split_max.value,
             invert=self._split_invert.value,
