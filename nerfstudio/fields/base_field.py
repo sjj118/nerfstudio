@@ -64,7 +64,7 @@ class Field(nn.Module):
                 pixel_area=torch.ones_like(positions[..., :1]),
             )
         )
-        density, _ = self.get_density(ray_samples)
+        density, *_ = self.get_density(ray_samples)
         return density
 
     @abstractmethod
