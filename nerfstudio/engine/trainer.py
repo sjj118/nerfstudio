@@ -248,6 +248,7 @@ class Trainer:
                 with self.train_lock:
                     with TimeWriter(writer, EventName.ITER_TRAIN_TIME, step=step) as train_t:
                         self.pipeline.train()
+                        self.pipeline.model.viewing = False
 
                         # training callbacks before the training iteration
                         for callback in self.callbacks:
@@ -297,6 +298,7 @@ class Trainer:
                 # Do not perform evaluation if there are no validation images
                 if self.pipeline.datamanager.eval_dataset:
                     with self.train_lock:
+                        self.pipeline.model.viewing = False
                         self.eval_iteration(step)
 
                 if step_check(step, self.config.steps_per_save):

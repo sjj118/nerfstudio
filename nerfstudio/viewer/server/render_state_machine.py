@@ -131,6 +131,7 @@ class RenderStateMachine(threading.Thread):
 
             with TimeWriter(None, None, write=False) as vis_t:
                 self.viewer.get_model().eval()
+                self.viewer.get_model().viewing = True
                 step = self.viewer.step
                 if self.viewer.control_panel.crop_viewport:
                     color = self.viewer.control_panel.background_color

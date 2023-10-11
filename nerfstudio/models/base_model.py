@@ -80,6 +80,7 @@ class Model(nn.Module):
         self.num_train_data = num_train_data
         self.kwargs = kwargs
         self.collider = None
+        self.viewing = False
 
         self.populate_modules()  # populate the modules
         self.callbacks = None
