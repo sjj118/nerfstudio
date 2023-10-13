@@ -241,7 +241,7 @@ class Trainer:
                 with self.train_lock:
                     with TimeWriter(writer, EventName.ITER_TRAIN_TIME, step=step) as train_t:
                         self.pipeline.train()
-                        self.pipeline.model.viewing = False
+                        self.pipeline.model.state = "train"
 
                         # training callbacks before the training iteration
                         for callback in self.callbacks:
@@ -291,7 +291,6 @@ class Trainer:
                 # Do not perform evaluation if there are no validation images
                 if self.pipeline.datamanager.eval_dataset:
                     with self.train_lock:
-                        self.pipeline.model.viewing = False
                         self.eval_iteration(step)
 
                 if step_check(step, self.config.steps_per_save):
@@ -511,6 +510,7 @@ class Trainer:
         """
         # a batch of eval rays
         if step_check(step, self.config.steps_per_eval_batch):
+            self.pipeline.model.state = "eval_batch"
             _, eval_loss_dict, eval_metrics_dict = self.pipeline.get_eval_loss_dict(step=step)
             eval_loss = functools.reduce(torch.add, eval_loss_dict.values())
             writer.put_scalar(name="Eval Loss", scalar=eval_loss, step=step)
@@ -519,6 +519,7 @@ class Trainer:
 
         # one eval image
         if step_check(step, self.config.steps_per_eval_image):
+            self.pipeline.model.state = "eval_image"
             with TimeWriter(writer, EventName.TEST_RAYS_PER_SEC, write=False) as test_t:
                 metrics_dict, images_dict = self.pipeline.get_eval_image_metrics_and_images(step=step)
             writer.put_time(
@@ -534,5 +535,6 @@ class Trainer:
 
         # all eval images
         if step_check(step, self.config.steps_per_eval_all_images):
+            self.pipeline.model.state = "eval_all"
             metrics_dict = self.pipeline.get_average_eval_image_metrics(step=step)
             writer.put_dict(name="Eval Images Metrics Dict (all images)", scalar_dict=metrics_dict, step=step)

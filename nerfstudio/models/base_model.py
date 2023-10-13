@@ -21,7 +21,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, Literal
 
 import torch
 from torch import nn
@@ -80,7 +80,7 @@ class Model(nn.Module):
         self.num_train_data = num_train_data
         self.kwargs = kwargs
         self.collider = None
-        self.viewing = False
+        self.state: Literal["train", "view", "eval_batch", "eval_image", "eval_all"] = "train"
 
         self.populate_modules()  # populate the modules
         self.callbacks = None
