@@ -301,6 +301,8 @@ class VanillaPipeline(Pipeline):
         model_outputs = self._model(ray_bundle)  # train distributed data parallel model if world_size > 1
         metrics_dict = self.model.get_metrics_dict(model_outputs, batch)
         loss_dict = self.model.get_loss_dict(model_outputs, batch, metrics_dict)
+        assert "num_rays" not in metrics_dict
+        metrics_dict["num_rays"] = len(ray_bundle)
 
         return model_outputs, loss_dict, metrics_dict
 

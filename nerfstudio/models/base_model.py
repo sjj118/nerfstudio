@@ -142,7 +142,7 @@ class Model(nn.Module):
 
         return self.get_outputs(ray_bundle)
 
-    def get_metrics_dict(self, outputs, batch) -> Dict[str, torch.Tensor]:
+    def get_metrics_dict(self, outputs, batch) -> Dict[str, Union[torch.Tensor, float]]:
         """Compute and returns metrics.
 
         Args:

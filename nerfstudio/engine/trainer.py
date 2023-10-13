@@ -262,8 +262,7 @@ class Trainer:
                 if step > 1:
                     writer.put_time(
                         name=EventName.TRAIN_RAYS_PER_SEC,
-                        duration=self.world_size
-                        * self.pipeline.datamanager.get_train_rays_per_batch()
+                        duration=self.world_size * metrics_dict["num_rays"]
                         / max(0.001, train_t.duration),
                         step=step,
                         avg_over_steps=True,
