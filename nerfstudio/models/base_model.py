@@ -80,7 +80,7 @@ class Model(nn.Module):
         self.num_train_data = num_train_data
         self.kwargs = kwargs
         self.collider = None
-        self.state: Literal["train", "view", "eval_batch", "eval_image", "eval_all"] = "train"
+        self.state: Literal["train", "view", "eval_batch", "eval_image", "eval_all"] = "eval_all"
 
         self.populate_modules()  # populate the modules
         self.callbacks = None
