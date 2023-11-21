@@ -22,31 +22,27 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
 from time import time
-from typing import Any, Dict, List, Literal, Mapping, Optional, Tuple, Type, Union, cast
+from typing import (Any, Dict, List, Literal, Mapping, Optional, Tuple, Type,
+                    Union, cast)
 
 import torch
 import torch.distributed as dist
 from PIL import Image
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    TextColumn,
-    TimeElapsedColumn,
-)
+from rich.progress import (BarColumn, MofNCompleteColumn, Progress, TextColumn,
+                           TimeElapsedColumn)
 from torch import nn
+from torch.cuda.amp.grad_scaler import GradScaler
 from torch.nn import Parameter
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.cuda.amp.grad_scaler import GradScaler
 
 from nerfstudio.configs import base_config as cfg
-from nerfstudio.data.datamanagers.base_datamanager import (
-    DataManager,
-    DataManagerConfig,
-    VanillaDataManager,
-)
-from nerfstudio.data.datamanagers.parallel_datamanager import ParallelDataManager
-from nerfstudio.engine.callbacks import TrainingCallback, TrainingCallbackAttributes
+from nerfstudio.data.datamanagers.base_datamanager import (DataManager,
+                                                           DataManagerConfig,
+                                                           VanillaDataManager)
+from nerfstudio.data.datamanagers.parallel_datamanager import \
+    ParallelDataManager
+from nerfstudio.engine.callbacks import (TrainingCallback,
+                                         TrainingCallbackAttributes)
 from nerfstudio.models.base_model import Model, ModelConfig
 from nerfstudio.utils import profiler
 
@@ -322,7 +318,9 @@ class VanillaPipeline(Pipeline):
             step: current iteration step
         """
         self.eval()
+        self.model.state = "eval_batch"
         ray_bundle, batch = self.datamanager.next_eval(step)
+        self.model.eval_num_rays_per_chunk[...] = len(ray_bundle)
         model_outputs = self.model(ray_bundle)
         metrics_dict = self.model.get_metrics_dict(model_outputs, batch)
         loss_dict = self.model.get_loss_dict(model_outputs, batch, metrics_dict)
@@ -338,6 +336,7 @@ class VanillaPipeline(Pipeline):
             step: current iteration step
         """
         self.eval()
+        self.model.state = "eval_image"
         image_idx, camera_ray_bundle, batch = self.datamanager.next_eval_image(step)
         outputs = self.model.get_outputs_for_camera_ray_bundle(camera_ray_bundle)
         metrics_dict, images_dict = self.model.get_image_metrics_and_images(outputs, batch)
@@ -363,6 +362,7 @@ class VanillaPipeline(Pipeline):
             metrics_dict: dictionary of metrics
         """
         self.eval()
+        self.model.state = "eval_all"
         metrics_dict_list = []
         assert isinstance(self.datamanager, (VanillaDataManager, ParallelDataManager))
         num_images = len(self.datamanager.fixed_indices_eval_dataloader)
