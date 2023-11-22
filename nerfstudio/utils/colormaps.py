@@ -35,8 +35,6 @@ class ColormapOptions:
     """ The colormap to use """
     normalize: bool = False
     """ Whether to normalize the input tensor image """
-    equalize: bool = False
-    """ Whether to histogram equalize the input tensor image """
     colormap_min: float = 0
     """ Minimum value for the output colormap """
     colormap_max: float = 1
@@ -44,17 +42,6 @@ class ColormapOptions:
     invert: bool = False
     """ Whether to invert the output colormap """
 
-def equalize(img: torch.Tensor, bins=256):
-    img_flat = img.flatten()
-    ind = img_flat.argsort()
-    _, inv, count = torch.unique_consecutive(img_flat[ind], return_inverse=True, return_counts=True)
-    cum = count.cumsum(-1) / len(img_flat)
-    edges = torch.arange(1,1+bins, device=img.device) / bins
-    target = torch.searchsorted(edges, cum) / 255
-    img_flat = torch.zeros_like(img_flat)
-    img_flat[ind] = target[inv]
-    img = img_flat.reshape(img.shape)
-    return img
 
 def apply_colormap(
     image: Float[Tensor, "*bs channels"],
@@ -82,9 +69,6 @@ def apply_colormap(
     # rendering depth outputs
     if image.shape[-1] == 1 and torch.is_floating_point(image):
         output = image
-        if colormap_options.equalize:
-            mask = output > 0
-            output[mask] = equalize(output[mask])
         if colormap_options.normalize:
             output = output - torch.min(output)
             output = output / (torch.max(output) + eps)
