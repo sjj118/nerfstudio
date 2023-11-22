@@ -21,7 +21,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Type, Union, Literal
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import torch
 from torch import nn
@@ -80,7 +80,6 @@ class Model(nn.Module):
         self.num_train_data = num_train_data
         self.kwargs = kwargs
         self.collider = None
-        self.state: Literal["train", "view", "eval_batch", "eval_image", "eval_all"] = "view"
 
         self.populate_modules()  # populate the modules
         self.callbacks = None
@@ -142,7 +141,7 @@ class Model(nn.Module):
 
         return self.get_outputs(ray_bundle)
 
-    def get_metrics_dict(self, outputs, batch) -> Dict[str, Union[torch.Tensor, float]]:
+    def get_metrics_dict(self, outputs, batch) -> Dict[str, torch.Tensor]:
         """Compute and returns metrics.
 
         Args:

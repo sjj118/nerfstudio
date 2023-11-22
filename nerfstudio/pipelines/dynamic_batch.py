@@ -42,8 +42,7 @@ class DynamicBatchPipeline(VanillaPipeline):
 
     config: DynamicBatchPipelineConfig
     datamanager: VanillaDataManager
-    train_dynamic_num_rays_per_batch: int
-    eval_dynamic_num_rays_per_batch: int
+    dynamic_num_rays_per_batch: int
 
     def __init__(
         self,
@@ -54,37 +53,26 @@ class DynamicBatchPipeline(VanillaPipeline):
         local_rank: int = 0,
         grad_scaler: Optional[GradScaler] = None,
     ):
-        super().__init__(config, device, test_mode, world_size, local_rank, grad_scaler)
+        super().__init__(config, device, test_mode, world_size, local_rank)
         assert isinstance(
             self.datamanager, VanillaDataManager
         ), "DynamicBatchPipeline only works with VanillaDataManager."
 
-        self.train_dynamic_num_rays_per_batch = self.config.target_num_samples // self.config.max_num_samples_per_ray
-        self.eval_dynamic_num_rays_per_batch = self.config.target_num_samples // self.config.max_num_samples_per_ray
-        self._update_train_pixel_samplers()
-        self._update_eval_pixel_samplers()
+        self.dynamic_num_rays_per_batch = self.config.target_num_samples // self.config.max_num_samples_per_ray
+        self._update_pixel_samplers()
 
-    def _update_train_pixel_samplers(self):
+    def _update_pixel_samplers(self):
         """Update the pixel samplers for train and eval with the dynamic number of rays per batch."""
         if self.datamanager.train_pixel_sampler is not None:
-            self.datamanager.train_pixel_sampler.set_num_rays_per_batch(self.train_dynamic_num_rays_per_batch)
-
-    def _update_eval_pixel_samplers(self):
+            self.datamanager.train_pixel_sampler.set_num_rays_per_batch(self.dynamic_num_rays_per_batch)
         if self.datamanager.eval_pixel_sampler is not None:
-            self.datamanager.eval_pixel_sampler.set_num_rays_per_batch(self.eval_dynamic_num_rays_per_batch)
+            self.datamanager.eval_pixel_sampler.set_num_rays_per_batch(self.dynamic_num_rays_per_batch)
 
-    def _update_train_dynamic_num_rays_per_batch(self, num_samples_per_batch: int):
+    def _update_dynamic_num_rays_per_batch(self, num_samples_per_batch: int):
         """Updates the dynamic number of rays per batch variable,
         based on the total number of samples in the last batch of rays."""
-        self.train_dynamic_num_rays_per_batch = int(
-            self.train_dynamic_num_rays_per_batch * min(self.config.target_num_samples / num_samples_per_batch, 1.1)
-        )
-
-    def _update_eval_dynamic_num_rays_per_batch(self, num_samples_per_batch: int):
-        """Updates the dynamic number of rays per batch variable,
-        based on the total number of samples in the last batch of rays."""
-        self.eval_dynamic_num_rays_per_batch = int(
-            self.eval_dynamic_num_rays_per_batch * min(self.config.target_num_samples / num_samples_per_batch, 1.1)
+        self.dynamic_num_rays_per_batch = int(
+            self.dynamic_num_rays_per_batch * (self.config.target_num_samples / num_samples_per_batch)
         )
 
     def get_train_loss_dict(self, step: int):
@@ -96,8 +84,8 @@ class DynamicBatchPipeline(VanillaPipeline):
                 "'num_samples_per_batch' is not in metrics_dict."
                 "Please return 'num_samples_per_batch' in the models get_metrics_dict function to use this method."
             )
-        self._update_train_dynamic_num_rays_per_batch(int(metrics_dict["num_samples_per_batch"]))
-        self._update_train_pixel_samplers()
+        self._update_dynamic_num_rays_per_batch(int(metrics_dict["num_samples_per_batch"]))
+        self._update_pixel_samplers()
 
         # add the number of rays
         assert "num_rays_per_batch" not in metrics_dict
@@ -108,15 +96,6 @@ class DynamicBatchPipeline(VanillaPipeline):
 
     def get_eval_loss_dict(self, step: int):
         model_outputs, loss_dict, metrics_dict = super().get_eval_loss_dict(step)
-
-        # update the number of rays for the next step
-        if "num_samples_per_batch" not in metrics_dict:
-            raise ValueError(
-                "'num_samples_per_batch' is not in metrics_dict."
-                "Please return 'num_samples_per_batch' in the models get_metrics_dict function to use this method."
-            )
-        self._update_eval_dynamic_num_rays_per_batch(int(metrics_dict["num_samples_per_batch"]))
-        self._update_eval_pixel_samplers()
 
         # add the number of rays
         assert "num_rays_per_batch" not in metrics_dict

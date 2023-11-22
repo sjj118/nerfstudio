@@ -131,7 +131,6 @@ class RenderStateMachine(threading.Thread):
 
             with TimeWriter(None, None, write=False) as vis_t:
                 self.viewer.get_model().eval()
-                self.viewer.get_model().state = "view"
                 step = self.viewer.step
                 if self.viewer.control_panel.crop_viewport:
                     color = self.viewer.control_panel.background_color
@@ -143,10 +142,10 @@ class RenderStateMachine(threading.Thread):
                             device=self.viewer.get_model().device,
                         )
                     with background_color_override_context(background_color), torch.no_grad():
-                        outputs = self.viewer.get_model().get_outputs_for_camera_ray_bundle(camera_ray_bundle)
+                        outputs = self.viewer.get_model().get_outputs_for_camera_ray_bundle(camera_ray_bundle, viewing=True)
                 else:
                     with torch.no_grad():
-                        outputs = self.viewer.get_model().get_outputs_for_camera_ray_bundle(camera_ray_bundle)
+                        outputs = self.viewer.get_model().get_outputs_for_camera_ray_bundle(camera_ray_bundle, viewing=True)
                 self.viewer.get_model().train()
         num_rays = len(camera_ray_bundle)
         render_time = vis_t.duration
