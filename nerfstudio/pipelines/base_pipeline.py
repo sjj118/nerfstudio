@@ -321,7 +321,6 @@ class VanillaPipeline(Pipeline):
         """
         self.eval()
         ray_bundle, batch = self.datamanager.next_eval(step)
-        self.model.eval_num_rays_per_chunk[...] = len(ray_bundle)
         model_outputs = self.model(ray_bundle)
         metrics_dict = self.model.get_metrics_dict(model_outputs, batch)
         loss_dict = self.model.get_loss_dict(model_outputs, batch, metrics_dict)
