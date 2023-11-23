@@ -289,7 +289,7 @@ class Trainer:
 
                 # Do not perform evaluation if there are no validation images
                 if self.pipeline.datamanager.eval_dataset:
-                    self.eval_iteration(step, self.train_lock)
+                    self.eval_iteration(step)
 
                 if step_check(step, self.config.steps_per_save):
                     self.save_checkpoint(step)
