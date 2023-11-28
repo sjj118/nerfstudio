@@ -47,9 +47,6 @@ class ComputePSNR:
         if self.render_output_path is not None:
             self.render_output_path.mkdir(parents=True)
         metrics_dict = pipeline.get_average_eval_image_metrics(output_path=self.render_output_path, get_std=True)
-        # import numpy as np
-        # np.save('/home/sjj118/tran_mae', pipeline.model.tran_mae_hist.compute().cpu().numpy())
-        # np.save('/home/sjj118/dens_mae', pipeline.model.dens_mae_hist.compute().cpu().numpy())
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
         # Get the output and define the names to save to
         benchmark_info = {
