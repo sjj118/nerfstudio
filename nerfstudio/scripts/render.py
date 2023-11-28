@@ -780,7 +780,7 @@ class DatasetRender(BaseRender):
                 for camera_idx, (ray_bundle, batch) in enumerate(progress.track(dataloader, total=len(dataset))):
                     ray_bundle: RayBundle
                     with torch.no_grad():
-                        outputs = pipeline.model.get_outputs_for_camera_ray_bundle(ray_bundle)
+                        outputs = pipeline.model.get_outputs_for_camera_ray_bundle(ray_bundle, viewing=True)
 
                     gt_batch = batch.copy()
                     gt_batch["rgb"] = gt_batch.pop("image")
