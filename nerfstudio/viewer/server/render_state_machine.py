@@ -142,10 +142,10 @@ class RenderStateMachine(threading.Thread):
                             device=self.viewer.get_model().device,
                         )
                     with background_color_override_context(background_color), torch.no_grad():
-                        outputs = self.viewer.get_model().get_outputs_for_camera_ray_bundle(camera_ray_bundle, viewing=True)
+                        outputs = self.viewer.get_model().get_outputs_for_camera_ray_bundle(camera_ray_bundle)
                 else:
                     with torch.no_grad():
-                        outputs = self.viewer.get_model().get_outputs_for_camera_ray_bundle(camera_ray_bundle, viewing=True)
+                        outputs = self.viewer.get_model().get_outputs_for_camera_ray_bundle(camera_ray_bundle)
                 self.viewer.get_model().train()
         num_rays = len(camera_ray_bundle)
         render_time = vis_t.duration
